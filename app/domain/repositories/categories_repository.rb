@@ -1,21 +1,27 @@
+# Abstract base class for Category repository
 class CategoriesRepository
-  def findAllCategories
-    raise NotImplementedError
+  # Retrieve all categories
+  def find_all_categories
+    raise NotImplementedError, "This method must be implemented in a subclass"
   end
 
-  def findCategoryById(id)
-    raise NotImplementedError
+  # Find a category by its ID
+  def find_category_by_id(id)
+    raise NotImplementedError, "This method must be implemented in a subclass"
   end
 
-  def createCategory(attributes)
-    raise NotImplementedError
+  # Create a new category with the given attributes
+  def create_category(attributes)
+    raise NotImplementedError, "This method must be implemented in a subclass"
   end
 
-  def updateCategory(id, attributes)
-    raise NotImplementedError
+  # Update an existing category identified by its ID
+  def update_category(id, attributes)
+    raise NotImplementedError, "This method must be implemented in a subclass"
   end
 
-  def destroyCategory(id)
-    raise NotImplementedError
+  # Delete a category identified by its ID
+  def destroy_category(id)
+    raise NotImplementedError, "This method must be implemented in a subclass"
   end
 end

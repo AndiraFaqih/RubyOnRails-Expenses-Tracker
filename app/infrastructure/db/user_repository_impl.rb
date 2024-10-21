@@ -1,33 +1,29 @@
 require_relative '../../domain/repositories/users_repository'
 
 class UsersRepositoryImpl < UsersRepository
-  def findAll
-    user = User.all
-    user
+  # Retrieves all users from the database.
+  def find_all
+    User.all
   end
 
-  def findById(id)
-    user = User.find(id)
-    user
+  # Finds a user by their ID.
+  def find_by_id(id)
+    User.find(id)
   end
 
+  # Creates a new user with the given attributes.
   def create(attributes)
-    newUser = User.create!(
-      name: attributes[:name],
-      email: attributes[:email],
-    )
-    newUser
+    User.create!(attributes)
   end
 
+  # Updates an existing user identified by ID with the given attributes.
   def update(id, attributes)
     user = User.find(id)
-    user.update!(
-      name: attributes[:name],
-      email: attributes[:email],
-    )
+    user.update!(attributes)
     user
   end
 
+  # Deletes a user identified by ID.
   def destroy(id)
     User.find(id).destroy!
   end

@@ -1,29 +1,38 @@
 require_relative "../../domain/repositories/expense_repository"
 
 class ExpenseRepositoryImpl < ExpenseRepository
-  def findAllExpenses(userId)
-    expenses = Expense.where(user_id: userId)
-    expenses
+  # Find all expenses for a given user
+  def find_all_expenses(user_id)
+    Expense.where(user_id: user_id)
   end
 
-  def findExpenseById(id)
-    expense = Expense.find(id)
+  # Find an expense by its ID
+  def find_expense_by_id(id)
+    Expense.find(id)
+  end
+
+  # Create a new expense with the given attributes
+  def create_expense(attributes)
+    Expense.create!(attributes) # Raises an exception if creation fails
+  end
+
+  # Update an existing expense identified by its ID
+  def update_expense(id, attributes)
+    expense = find_expense_by_id(id)
+    expense.update!(attributes) # Raises an exception if update fails
     expense
   end
 
-  def createExpense(attributes)
-    expenses = Expense.create!(attributes)
-    expenses
+  # Delete an expense identified by its ID
+  def destroy_expense(id)
+    expense = find_expense_by_id(id)
+    expense.destroy! # Raises an exception if deletion fails
   end
 
-  def updateExpense(id, attributes)
-    expense = Expense.find(id)
-    expense.update!(attributes)
-    expense
-  end
-
-  def destroyExpense(id)
-    expense = Expense.find(id)
-    expense.destroy!
+  # Calculate total expenses for a given month and year
+  def expense_month_total(user_id, month, year)
+    Expense.where(user_id: user_id)
+           .where("extract(month from created_at) = ? AND extract(year from created_at) = ?", month, year)
+           .sum(:amount)
   end
 end

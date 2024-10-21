@@ -1,46 +1,72 @@
-# frozen_string_literal: true
-
 class Users::SessionsController < Devise::SessionsController
   respond_to :json
+  # before_action :check_already_logged_in, only: :create
 
+  # POST /users/sign_in
+  # This method handles user authentication and responds with a JWT token on successful login.
   def create
-    Rails.logger.info "Start login process"
-    Rails.logger.info "Auth Options: #{auth_options.inspect}"
+    sign_out(resource_name) if user_signed_in?
 
-    user = warden.authenticate!(auth_options)
+    user = warden.authenticate(auth_options)
 
     if user
-      Rails.logger.info "User authenticated: #{user.inspect}"
+      sign_out_previous_session if user_signed_in?
+
       token = current_token
+
       if token
-        Rails.logger.info "JWT Token: #{token}"
         render json: {
-          token: token,
-          user: user
-        }, status: :created
+          status: {
+            code: 200,
+            message: "Login successful"
+          },
+          data: UserSerializer.new(user).serializable_hash[:data][:attributes],
+          token: token
+        }
       else
-        Rails.logger.info "Failed to generate token"
-        render json: { error: 'Token generation failed' }, status: :unprocessable_entity
+        render json: {
+          status: {
+            code: 500,
+            message: "JWT Token is missing or nil" 
+          }
+        }
       end
     else
-      Rails.logger.info "Authentication failed for email: #{params[:user][:email]}"
-      render json: { error: 'Invalid login credentials' }, status: :unauthorized
+      sign_out(resource_name) # Sign out if authentication fails
+      render json: { error: "Invalid login credentials" }, status: :unauthorized
     end
   end
 
-  def destroy
-    super do |resource|
-      if resource.errors.empty?
-        render json: { message: 'Logged out successfully' }, status: :ok
-      end
+  # DELETE /users/sign_out
+  # This method handles the logout process and can include logic to revoke JWT tokens.
+  def respond_to_on_destroy
+    if current_user
+      Rails.logger.info "Current user: #{current_user.inspect}"
+      render json: { message: "Logged out successfully" }, status: :ok
+    else
+      render json: { error: "No user logged in" }, status: :unauthorized
     end
   end
 
   private
 
+  # This method retrieves the JWT token from the Warden environment.
   def current_token
-    jwt_payload = request.env['warden-jwt_auth.token']
-    Rails.logger.info "JWT Payload: #{jwt_payload}"
+    jwt_payload = request.env["warden-jwt_auth.token"]
     jwt_payload
+  end
+
+  # This method checks if the user is already logged in to prevent duplicate logins.
+  def check_already_logged_in
+    if user_signed_in?
+      render json: { error: "User already signed in" }, status: :forbidden
+    end
+  end
+
+  # This method signs out any previously signed-in sessions to prevent conflicts.
+  def sign_out_previous_session
+    if user_signed_in?
+      sign_out(resource_name)
+    end
   end
 end

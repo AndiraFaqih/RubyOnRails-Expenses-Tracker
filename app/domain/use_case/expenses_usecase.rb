@@ -5,60 +5,86 @@ class ExpenseUsecase
     @expense_repository_impl = expense_repository
   end
 
-  def findAllExpenses(userId)
+  # Find all expenses for a given user
+  def find_all_expenses(user_id)
     begin
-      expenses = @expense_repository_impl.findAllExpenses(userId)
-      expenses
-
+      @expense_repository_impl.find_all_expenses(user_id)
     rescue ActiveRecord::RecordNotFound
-      raise StandardError.new("Expenses tidak ditemukan.")
+      raise StandardError.new("Expenses not found.")
     end
   end
 
-  def findExpenseById(expenseId)
+  # Find an expense by its ID
+  def find_expense_by_id(expense_id)
     begin
-      expense = @expense_repository_impl.findExpenseById(expenseId)
+      expense = @expense_repository_impl.find_expense_by_id(expense_id)
       return nil unless expense
       expense
-
     rescue ActiveRecord::RecordNotFound
-      raise StandardError.new("Expense dengan ID #{expenseId} tidak ditemukan.")
+      raise StandardError.new("Expense with ID #{expense_id} not found.")
     end
   end
 
-  def createExpense(attributes)
-    excludeAttributes = attributes.except(:category_name)
+  # Create a new expense
+  def create_expense(attributes)
+    exclude_attributes = attributes.except(:category_name)
     begin
-      expense = @expense_repository_impl.createExpense(excludeAttributes)
-      expense
-
+      @expense_repository_impl.create_expense(exclude_attributes)
     rescue StandardError => e
       raise e
     end
   end
 
-  def updateExpense(id, attributes)
+  # Update an existing expense
+  def update_expense(id, attributes)
     begin
-      attributesToUpdate = {}
-      attributesToUpdate[:amount] = attributes[:amount] if attributes[:amount].present?
-      attributesToUpdate[:description] = attributes[:description] if attributes[:description].present?
+      attributes_to_update = {}
+      attributes_to_update[:amount] = attributes[:amount] if attributes[:amount].present?
+      attributes_to_update[:description] = attributes[:description] if attributes[:description].present?
 
-      expense = @expense_repository_impl.updateExpense(id, attributesToUpdate)
-      expense
-
+      @expense_repository_impl.update_expense(id, attributes_to_update)
     rescue ActiveRecord::RecordNotFound
-      raise StandardError.new("Expense dengan ID #{id} tidak ditemukan.")
+      raise StandardError.new("Expense with ID #{id} not found.")
     end
   end
 
-  def destroyExpense(id)
+  # Delete an expense
+  def destroy_expense(id)
     begin
-      expense = findExpenseById(id)
-      @expense_repository_impl.destroyExpense(id)
-      expense
-
+      find_expense_by_id(id) # Check if expense exists
+      @expense_repository_impl.destroy_expense(id)
     rescue ActiveRecord::RecordNotFound
-      raise StandardError.new("Kategori dengan ID #{id} tidak ditemukan.")
+      raise StandardError.new("Expense with ID #{id} not found.")
+    end
+  end
+
+  # Calculate total expenses for a given month and year
+  def expense_month_total(user_id, month, year)
+    begin
+      @expense_repository_impl.expense_month_total(user_id, month, year)
+    rescue ActiveRecord::RecordNotFound
+      raise StandardError.new("Expenses not found.")
+    end
+  end
+
+  # Calculate total expenses for a given year by month
+  def expense_year_total(user_id, month, year)
+    begin
+      monthly_expense = {}
+      total_year_expense = 0
+
+      (1..month).each do |m|
+        month_name = Date::MONTHNAMES[m]
+        monthly_expense[month_name] = expense_month_total(user_id, m, year)
+        total_year_expense += monthly_expense[month_name]
+      end
+
+      {
+        monthly_expense: monthly_expense,
+        total_year_expense: total_year_expense
+      }
+    rescue ActiveRecord::RecordNotFound
+      raise StandardError.new("Expenses not found.")
     end
   end
 end

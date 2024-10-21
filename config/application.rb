@@ -30,5 +30,12 @@ module ExpenseTrackerApi
     config.api_only = true
 
     config.middleware.use Warden::JWTAuth::Middleware
+    # config.session_store :cookie_store, key: '_interslice_session'
+    # config.middleware.use ActionDispatch::Cookies
+    # config.middleware.use config.session_store, config.session_options
+
+    config.session_store :disabled
+    config.middleware.delete ActionDispatch::Cookies
+    config.middleware.delete ActionDispatch::Session::CookieStore
   end
 end
