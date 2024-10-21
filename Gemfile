@@ -45,7 +45,7 @@ group :development, :test do
 
   gem "devise-jwt"
 
-  gem "warden-jwt_auth", "~> 0.6.0"
+  gem "warden-jwt_auth", "~> 0.10.0"
 
   gem "dotenv-rails", groups: [ :development, :test ]
 
